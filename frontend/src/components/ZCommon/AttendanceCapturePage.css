@@ -1,0 +1,642 @@
+/* ============================================
+   ATTENDANCE CAPTURE PAGE - FRAMES DESIGN
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.frames-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+/* ============================================
+   HEADER - FRAMES STYLE
+   ============================================ */
+
+.frames-header {
+    background: linear-gradient(90deg, #c82333 0%, #a01d2a 100%);
+    padding: 0 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.frames-logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-badge {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.header-time {
+    text-align: right;
+}
+
+.header-time p {
+    font-size: 16px;
+    color: white;
+    font-weight: 500;
+}
+
+.header-time p:first-child {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* ============================================
+   MAIN CONTENT - TWO COLUMN LAYOUT
+   ============================================ */
+
+.frames-content-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 30px;
+    padding: 30px 40px;
+    overflow: hidden;
+}
+
+/* ============================================
+   CAMERA SECTION - LEFT SIDE
+   ============================================ */
+
+.camera-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+}
+
+.camera-wrapper-large {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* FACE DETECTION BOX */
+.face-detection-box {
+    position: absolute;
+    border: 3px solid #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5),
+                inset 0 0 20px rgba(0, 255, 0, 0.3);
+    pointer-events: none;
+    z-index: 10;
+    transition: all 0.2s ease-out;
+}
+
+/* Animated Corners */
+.corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 4px solid #00ff00;
+    background: rgba(0, 255, 0, 0.2);
+}
+
+.corner-tl {
+    top: -2px;
+    left: -2px;
+    border-right: none;
+    border-bottom: none;
+    animation: cornerPulse 1.5s ease-in-out infinite;
+}
+
+.corner-tr {
+    top: -2px;
+    right: -2px;
+    border-left: none;
+    border-bottom: none;
+    animation: cornerPulse 1.5s ease-in-out infinite 0.2s;
+}
+
+.corner-bl {
+    bottom: -2px;
+    left: -2px;
+    border-right: none;
+    border-top: none;
+    animation: cornerPulse 1.5s ease-in-out infinite 0.4s;
+}
+
+.corner-br {
+    bottom: -2px;
+    right: -2px;
+    border-left: none;
+    border-top: none;
+    animation: cornerPulse 1.5s ease-in-out infinite 0.6s;
+}
+
+@keyframes cornerPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+}
+
+.camera-container-large {
+    flex: 1;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border: 4px solid #c82333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    position: relative;
+}
+
+.camera-feed-large {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.camera-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    color: white;
+    font-size: 18px;
+}
+
+.camera-loading i {
+    font-size: 48px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Face Detection Overlay */
+.face-detection-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.detection-pulse {
+    width: 120px;
+    height: 120px;
+    border: 4px solid #28a745;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
+}
+
+.detection-text {
+    display: block;
+    color: #28a745;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 20px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 49%, 100% { opacity: 1; }
+    50%, 99% { opacity: 0.5; }
+}
+
+/* ============================================
+   INSTRUCTIONS
+   ============================================ */
+
+.kiosk-instructions {
+    text-align: center;
+    background: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #c82333;
+}
+
+.kiosk-instructions i {
+    font-size: 28px;
+    color: #c82333;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.kiosk-instructions h2 {
+    font-size: 18px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* ============================================
+   SUCCESS NOTIFICATION
+   ============================================ */
+
+.success-notification {
+    background: #28a745;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    animation: slideIn 0.3s ease-out;
+    margin-bottom: 20px;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.success-notification i {
+    font-size: 20px;
+}
+
+/* ============================================
+   RECORDED SECTION - RIGHT SIDE
+   ============================================ */
+
+.info-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.info-panel {
+    background: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #c82333;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.panel-title i {
+    color: #28a745;
+    font-size: 20px;
+}
+
+/* ============================================
+   SUCCESS NOTIFICATION - LARGE
+   ============================================ */
+
+.success-notification-large {
+    background: #d4edda;
+    border: 2px solid #28a745;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+
+.success-notification-large i {
+    font-size: 20px;
+    color: #28a745;
+    flex-shrink: 0;
+}
+
+.success-notification-large p {
+    margin: 0;
+}
+
+/* ============================================
+   RECORDED SECTION - LARGE
+   ============================================ */
+
+.recorded-section-large {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+}
+
+.records-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.records-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.records-header h3 i {
+    color: #28a745;
+    font-size: 18px;
+}
+
+.record-count {
+    background: #c82333;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 35px;
+    text-align: center;
+}
+
+.recorded-list-large {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.recorded-list-large::-webkit-scrollbar {
+    width: 6px;
+}
+
+.recorded-list-large::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 10px;
+}
+
+.recorded-list-large::-webkit-scrollbar-thumb {
+    background: #c82333;
+    border-radius: 10px;
+}
+
+.recorded-item-large {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: #f9f9f9;
+    border-left: 4px solid #c82333;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.recorded-item-large:hover {
+    background: #f0f0f0;
+    transform: translateX(5px);
+}
+
+.item-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: #c82333;
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.item-time {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.item-time i {
+    font-size: 11px;
+    color: #c82333;
+}
+
+.item-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #d4edda;
+    color: #28a745;
+    border-radius: 50%;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 40px 20px;
+    color: #999;
+    text-align: center;
+    height: 100%;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #ddd;
+}
+
+.empty-state p {
+    font-size: 15px;
+    margin: 0;
+}
+
+.empty-state .subtitle {
+    font-size: 13px;
+    color: #bbb;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.kiosk-footer {
+    background: #f0f0f0;
+    color: #666;
+    padding: 15px 20px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.kiosk-footer p {
+    margin: 3px 0;
+}
+
+.kiosk-footer strong {
+    font-weight: 600;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1400px) {
+    .frames-content-grid {
+        gap: 20px;
+        padding: 20px 30px;
+    }
+
+    .info-panel {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .frames-content-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .camera-container-large {
+        min-height: 350px;
+    }
+
+    .info-panel {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .frames-header {
+        padding: 0 20px;
+    }
+
+    .frames-logo {
+        font-size: 20px;
+    }
+
+    .admin-badge {
+        font-size: 12px;
+    }
+
+    .frames-content-grid {
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .camera-container-large {
+        min-height: 250px;
+    }
+
+    .kiosk-instructions h2 {
+        font-size: 16px;
+    }
+
+    .panel-title {
+        font-size: 16px;
+    }
+
+    .record-count {
+        font-size: 12px;
+    }
+
+    .item-name {
+        font-size: 14px;
+    }
+}
