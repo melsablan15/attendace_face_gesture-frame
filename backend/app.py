@@ -839,10 +839,11 @@ def get_all_attendance_records():
         if not conn: return jsonify({"error": "Database connection failed"}), 500
         cursor = conn.cursor(dictionary=True)
 
-        # FIXED: Changed 'ClassRoom' to 'CameraManagement'
+        # FIXED: Changed 'ClassRoom' to 'CameraManagement' AND event_id to log_id
+        # FIXED: Removed u.department (column doesn't exist)
         query = """
-            SELECT e.event_id, e.user_id, e.event_type, e.timestamp, e.confidence_score, e.remarks,
-                   u.firstName, u.lastName, u.role as user_role, u.department,
+            SELECT e.log_id, e.user_id, e.event_type, e.timestamp, e.confidence_score, e.remarks,
+                   u.firstName, u.lastName, u.role as user_role, u.college,
                    cs.course_code, cm.room_name
             FROM EventLog e
             LEFT JOIN User u ON e.user_id = u.user_id
@@ -857,11 +858,11 @@ def get_all_attendance_records():
         processed_records = []
         for record in records:
             processed_record = {
-                "event_id": record['event_id'],
+                "log_id": record['log_id'],
                 "user_id": record['user_id'],
                 "user_name": f"{record['firstName'] or ''} {record['lastName'] or ''}".strip() or "Unknown",
                 "user_role": record['user_role'],
-                "department": record['department'],
+                "college": record.get('college', 'N/A'),
                 "event_type": record['event_type'],
                 "timestamp": record['timestamp'].isoformat() if record['timestamp'] else None,
                 "confidence_score": int(record['confidence_score']) if record['confidence_score'] else 0,

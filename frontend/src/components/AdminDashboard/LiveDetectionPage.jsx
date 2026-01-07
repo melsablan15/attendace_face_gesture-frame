@@ -8,6 +8,7 @@ const LiveDetectionPage = () => {
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [scanning, setScanning] = useState(false);
+    const [timeFilter, setTimeFilter] = useState(24); // hours
 
     // Fetch recent detections
     const fetchDetections = async () => {
@@ -16,21 +17,22 @@ const LiveDetectionPage = () => {
             
             console.log('🔄 Fetching attendance records...');
             
-            // Get records from last 24 hours
+            // Get records from configurable time period
+            const days = Math.ceil(timeFilter / 24);
             const response = await axios.get('http://localhost:5000/api/admin/attendance-records', {
-                params: { days: 1 }
+                params: { days: days }
             });
             
             console.log(`📊 API returned ${response.data.length} total records`);
             
-            // Filter to last 30 minutes (increased from 10 for testing)
-            const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+            // Filter based on selected time period
+            const filterTime = new Date(Date.now() - timeFilter * 60 * 60 * 1000);
             const recentDetections = response.data.filter(record => {
                 const recordTime = new Date(record.timestamp);
-                return recordTime > thirtyMinutesAgo;
+                return recordTime > filterTime;
             });
             
-            console.log(`✅ Found ${recentDetections.length} detections in last 30 minutes`);
+            console.log(`✅ Found ${recentDetections.length} detections in last ${timeFilter} hours`);
             if (recentDetections.length > 0) {
                 console.log('Latest detection:', recentDetections[0]);
             }
@@ -60,7 +62,7 @@ const LiveDetectionPage = () => {
             
             return () => clearInterval(interval);
         }
-    }, [autoRefresh]);
+    }, [autoRefresh, timeFilter]);
 
     // Format time (show seconds for real-time feeling)
     const formatTime = (timestamp) => {
@@ -68,6 +70,15 @@ const LiveDetectionPage = () => {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit'
+        });
+    };
+
+    // Format date with day
+    const formatDate = (timestamp) => {
+        return new Date(timestamp).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
         });
     };
 
@@ -79,7 +90,9 @@ const LiveDetectionPage = () => {
         const minutes = Math.floor(seconds / 60);
         if (minutes < 60) return `${minutes}m ago`;
         const hours = Math.floor(minutes / 60);
-        return `${hours}h ago`;
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        return `${days}d ago`;
     };
 
     // Get event style
@@ -109,6 +122,22 @@ const LiveDetectionPage = () => {
                     <p>Real-time camera attendance monitoring</p>
                 </div>
                 <div className="header-right">
+                    <div className="time-filter-selector">
+                        <label>Show: </label>
+                        <select 
+                            value={timeFilter} 
+                            onChange={(e) => setTimeFilter(Number(e.target.value))}
+                            className="time-filter-dropdown"
+                        >
+                            <option value={1}>Last Hour</option>
+                            <option value={2}>Last 2 Hours</option>
+                            <option value={6}>Last 6 Hours</option>
+                            <option value={12}>Last 12 Hours</option>
+                            <option value={24}>Last 24 Hours</option>
+                            <option value={48}>Last 2 Days</option>
+                            <option value={168}>Last Week</option>
+                        </select>
+                    </div>
                     <div className="status-indicator">
                         <div className={`status-dot ${autoRefresh ? 'active' : 'inactive'}`}></div>
                         <span>{scanning ? 'Scanning...' : autoRefresh ? 'Live' : 'Paused'}</span>
@@ -132,7 +161,7 @@ const LiveDetectionPage = () => {
                     <i className="fas fa-users"></i>
                     <div>
                         <div className="stat-value">{detections.length}</div>
-                        <div className="stat-label">Detected (10min)</div>
+                        <div className="stat-label">Detected ({timeFilter}h)</div>
                     </div>
                 </div>
                 <div className="stat-item">
@@ -149,6 +178,15 @@ const LiveDetectionPage = () => {
                             {detections.filter(d => d.event_type === 'attendance_in').length}
                         </div>
                         <div className="stat-label">Check-Ins</div>
+                    </div>
+                </div>
+                <div className="stat-item">
+                    <i className="fas fa-sign-out-alt"></i>
+                    <div>
+                        <div className="stat-value">
+                            {detections.filter(d => d.event_type === 'attendance_out').length}
+                        </div>
+                        <div className="stat-label">Check-Outs</div>
                     </div>
                 </div>
             </div>
@@ -169,82 +207,106 @@ const LiveDetectionPage = () => {
                 {loading ? (
                     <div className="loading-state">
                         <div className="spinner"></div>
-                        <p>Loading detections...</p>
+                        <p>Loading detection records...</p>
                     </div>
                 ) : detections.length > 0 ? (
-                    detections.map((detection, index) => {
-                        const eventStyle = getEventStyle(detection.event_type);
-                        const isRecent = (new Date() - new Date(detection.timestamp)) < 30000; // Last 30 seconds
-                        
-                        return (
-                            <div 
-                                key={index} 
-                                className={`detection-card ${isRecent ? 'recent-detection' : ''}`}
-                            >
-                                {/* Captured Face */}
-                                <div className="detection-image">
-                                    {detection.face_data ? (
-                                        <img 
-                                            src={detection.face_data} 
-                                            alt="Detected Face"
-                                            className="face-image"
-                                        />
-                                    ) : (
-                                        <div className="no-image">
-                                            <i className="fas fa-user-circle"></i>
-                                        </div>
-                                    )}
-                                    {isRecent && (
-                                        <div className="new-badge">
-                                            <i className="fas fa-circle"></i> NEW
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Detection Info */}
-                                <div className="detection-info">
-                                    <div className="person-name">
-                                        {detection.user_name || 'Unknown Person'}
-                                    </div>
-                                    <div className="person-id">
-                                        ID: {detection.user_id}
-                                    </div>
+                    <div className="records-list-container">
+                        <div className="records-count-badge">
+                            <i className="fas fa-database"></i>
+                            Showing {detections.length} record{detections.length !== 1 ? 's' : ''} from EventLog table
+                        </div>
+                        <table className="detection-records-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Room</th>
+                                    <th>Confidence</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {detections.map((detection, index) => {
+                                    const eventStyle = getEventStyle(detection.event_type);
+                                    const isRecent = (new Date() - new Date(detection.timestamp)) < 30000;
+                                    const isToday = new Date(detection.timestamp).toDateString() === new Date().toDateString();
                                     
-                                    <div className="event-badge" style={{ backgroundColor: eventStyle.color }}>
-                                        <i className={eventStyle.icon}></i>
-                                        {eventStyle.label}
-                                    </div>
-
-                                    <div className="detection-details">
-                                        <div className="detail-row">
-                                            <i className="fas fa-clock"></i>
-                                            <span>{formatTime(detection.timestamp)}</span>
-                                            <span className="time-ago">{getTimeAgo(detection.timestamp)}</span>
-                                        </div>
-                                        <div className="detail-row">
-                                            <i className="fas fa-door-open"></i>
-                                            <span>{detection.room_name || 'Unknown Room'}</span>
-                                        </div>
-                                        <div className="detail-row">
-                                            <i className="fas fa-book"></i>
-                                            <span>{detection.course_code || 'N/A'}</span>
-                                        </div>
-                                        <div className="detail-row">
-                                            <i className="fas fa-percentage"></i>
-                                            <span className="confidence">
-                                                {detection.confidence_score || 0}% Confidence
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
+                                    return (
+                                        <tr key={index} className={`record-row ${isRecent ? 'recent-record' : ''}`}>
+                                            <td className="cell-number">{index + 1}</td>
+                                            <td className="cell-name">
+                                                <div className="name-with-avatar">
+                                                    <div className="avatar-circle">
+                                                        <i className="fas fa-user"></i>
+                                                    </div>
+                                                    <span className="name-text">{detection.user_name || 'Unknown'}</span>
+                                                    {isRecent && (
+                                                        <span className="new-indicator">NEW</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="cell-role">
+                                                <span className={`role-badge role-${detection.user_role?.toLowerCase() || 'default'}`}>
+                                                    {detection.user_role === 'student' && <i className="fas fa-user-graduate"></i>}
+                                                    {detection.user_role === 'faculty' && <i className="fas fa-chalkboard-teacher"></i>}
+                                                    {detection.user_role === 'admin' && <i className="fas fa-user-shield"></i>}
+                                                    {detection.user_role || 'N/A'}
+                                                </span>
+                                            </td>
+                                            <td className="cell-event">
+                                                <div className="event-indicator" style={{ backgroundColor: eventStyle.color }}>
+                                                    <i className={eventStyle.icon}></i>
+                                                    <span>{eventStyle.label}</span>
+                                                </div>
+                                            </td>
+                                            <td className="cell-date">
+                                                <div className="date-info">
+                                                    <span className={isToday ? 'date-today' : 'date-past'}>
+                                                        {isToday ? 'Today' : formatDate(detection.timestamp)}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="cell-time">
+                                                <div className="time-info">
+                                                    <span className="time-main">{formatTime(detection.timestamp)}</span>
+                                                    <span className="time-ago">{getTimeAgo(detection.timestamp)}</span>
+                                                </div>
+                                            </td>
+                                            <td className="cell-room">{detection.room_name || 'TBA'}</td>
+                                            <td className="cell-confidence">
+                                                <div className="confidence-bar">
+                                                    <div 
+                                                        className="confidence-fill" 
+                                                        style={{ 
+                                                            width: `${detection.confidence_score}%`,
+                                                            backgroundColor: detection.confidence_score >= 80 ? '#28a745' : 
+                                                                           detection.confidence_score >= 60 ? '#ffc107' : '#dc3545'
+                                                        }}
+                                                    ></div>
+                                                    <span className="confidence-text">{detection.confidence_score}%</span>
+                                                </div>
+                                            </td>
+                                            <td className="cell-status">
+                                                <span className={`status-badge status-${detection.remarks?.toLowerCase().replace(' ', '-') || 'default'}`}>
+                                                    {detection.remarks || 'N/A'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 ) : (
                     <div className="no-detections">
                         <i className="fas fa-inbox"></i>
                         <h3>No Recent Detections</h3>
-                        <p>Waiting for camera activity...</p>
+                        <p>No attendance records found in the last {timeFilter} hour{timeFilter !== 1 ? 's' : ''}.</p>
+                        <p className="helper-text">Try selecting a longer time period or wait for new detections.</p>
                         <div className="pulse-indicator">
                             <div className="pulse-dot"></div>
                             <span>Monitoring</span>
